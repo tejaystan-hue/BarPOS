@@ -48,6 +48,6 @@ test('setup uses schema with nullable cent prices and the actual app help contra
  let sent;const input=validateInput({kind:'setup',prompt:'Burger $2 kitchen',inventory:catalog,menu:[{id:1,name:'Water',category:'DRINKS',price_cents:100,kitchen:false}]});
  const result=await requestAI(input,{key:'mock-key',fetch:async(url,opts)=>{sent=JSON.parse(opts.body);return {ok:true,json:async()=>({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({summary:'Review',items:[{name:'Burger',category:'FOOD',price_cents:200,kitchen:true,notes:'',ingredients:[]}]})}]}]})};}});
  assert.equal(result.items[0].price_cents,200);assert.equal(sent.text.format.name,'barpos_setup');assert.equal(sent.text.format.schema.properties.items.items.properties.price_cents.type[1],'null');
- assert.match(sent.instructions,/purchase\/case costs are NOT sale prices/);assert.match(sent.instructions,/No automatic buzzer integration or multi-tablet synchronization/);
- assert.equal(JSON.parse(sent.input[0].content[0].text).existing_menu[0].price_cents,100);
+ assert.match(sent.instructions,/purchase\/case costs are NOT sale prices/);assert.match(sent.instructions,/No automatic buzzer integration/);
+ assert.match(sent.instructions,/CONNECT TABLETS pairs up to five/);assert.match(sent.instructions,/CHECK PENDING PAYMENT/);assert.equal(JSON.parse(sent.input[0].content[0].text).existing_menu[0].price_cents,100);
 });

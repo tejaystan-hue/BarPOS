@@ -1,0 +1,19 @@
+# Optional Render blueprint. Choose your compute plan in Render before deployment.
+services:
+  - type: web
+    name: barpos-ai
+    runtime: node
+    buildCommand: node --check server.mjs
+    startCommand: node server.mjs
+    healthCheckPath: /live
+    envVars:
+      - key: HOST
+        value: 0.0.0.0
+      - key: NODE_VERSION
+        value: 22.16.0
+      - key: OPENAI_MODEL
+        value: gpt-4.1-mini
+      - key: OPENAI_API_KEY
+        sync: false
+      - key: BARPOS_DEVICE_TOKEN
+        generateValue: true

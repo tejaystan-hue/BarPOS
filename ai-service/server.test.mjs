@@ -37,3 +37,17 @@ test('HTTP service requires device token and returns reviewed suggestions only',
   assert.equal((await fetch(url+'/stock',{method:'POST',headers,body:'{}'})).status,404);
  }finally{await new Promise(resolve=>server.close(resolve));}
 });
+test('setup keeps unknown prices unknown and help cannot return writable menu drafts',()=>{
+ const setup=validateInput({kind:'setup',prompt:'Add burger; price unknown',inventory:catalog});
+ const result=normalizeOutput({summary:'Review',items:[{name:'Burger',category:'food',price_cents:null,kitchen:true,notes:'Price needed',ingredients:[{description:'Confirm ingredients'}]},{name:'Bad price',category:'food',price_cents:-1,kitchen:true}]},setup);
+ assert.equal(result.items[0].price_cents,null);assert.equal(result.items[0].category,'FOOD');assert.equal(result.items[1].price_cents,null);
+ assert.throws(()=>validateInput({kind:'setup',inventory:catalog,prompt:''}),/Describe/);
+ assert.deepEqual(normalizeOutput({summary:'Go to MENU',items:result.items},validateInput({kind:'help',prompt:'How do I add?',inventory:catalog})).items,[]);
+});
+test('setup uses schema with nullable cent prices and the actual app help contract',async()=>{
+ let sent;const input=validateInput({kind:'setup',prompt:'Burger $2 kitchen',inventory:catalog,menu:[{id:1,name:'Water',category:'DRINKS',price_cents:100,kitchen:false}]});
+ const result=await requestAI(input,{key:'mock-key',fetch:async(url,opts)=>{sent=JSON.parse(opts.body);return {ok:true,json:async()=>({status:'completed',output:[{content:[{type:'output_text',text:JSON.stringify({summary:'Review',items:[{name:'Burger',category:'FOOD',price_cents:200,kitchen:true,notes:'',ingredients:[]}]})}]}]})};}});
+ assert.equal(result.items[0].price_cents,200);assert.equal(sent.text.format.name,'barpos_setup');assert.equal(sent.text.format.schema.properties.items.items.properties.price_cents.type[1],'null');
+ assert.match(sent.instructions,/purchase\/case costs are NOT sale prices/);assert.match(sent.instructions,/No automatic buzzer integration or multi-tablet synchronization/);
+ assert.equal(JSON.parse(sent.input[0].content[0].text).existing_menu[0].price_cents,100);
+});

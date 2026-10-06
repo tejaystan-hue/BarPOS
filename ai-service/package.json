@@ -1,1 +1,1 @@
-{"name": "barpos-ai-service", "version": "13.0.0", "private": true, "type": "module", "engines": {"node": ">=22.16.0"}, "scripts": {"start": "node server.mjs", "test": "node --test server.test.mjs shared.test.mjs"}}
+{"name": "barpos-ai-service", "version": "15.0.0", "private": true, "type": "module", "engines": {"node": ">=22.16.0"}, "scripts": {"start": "node server.mjs", "test": "node --test server.test.mjs shared.test.mjs"}}

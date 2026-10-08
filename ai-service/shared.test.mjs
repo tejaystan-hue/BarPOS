@@ -76,3 +76,14 @@ test('first public sale opens assigned period once with entered float, rollback 
   assert.equal(store.snapshot().cash_drawers.length,2);assert.equal(store.snapshot().cash_drawers[0].expected_cents,10400);
  }finally{store.close();}
 });
+
+test('unpriced catalog buttons cannot create free sales or alter stock',()=>{
+ const store=createSharedStore();try {
+  const s=fixture(store);s.pos_products[0].price_cents=0;s.pos_products[0].category="FOOD / JACK'S PIZZA";
+  assert.equal(store.handle('/shared/init','POST',{snapshot:s,pin:'9876'}).status,200);
+  const request=sale();request.cart[0].product.price=0;request.tendered=0;
+  const result=store.handle('/shared/checkout','POST',request);assert.equal(result.status,400);assert.match(JSON.stringify(result.body),/Price needed/);
+  assert.equal(store.snapshot().sales.length,0);assert.equal(store.snapshot().inventory_items[0].quantity_on_hand,20);
+  assert.equal(store.handle('/shared/public','GET').body.menu[0].category,"FOOD / JACK'S PIZZA");
+ }finally{store.close();}
+});
